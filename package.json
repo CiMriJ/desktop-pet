@@ -1,0 +1,50 @@
+{
+  "name": "desktop-pet",
+  "productName": "桌面宠物一二布布",
+  "version": "1.1.4",
+  "description": "桌面宠物 一二 & 布布",
+  "author": "yierbubu",
+  "type": "module",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test",
+    "icons": "node scripts/make-icons.mjs",
+    "pack": "node scripts/pack-asar.mjs",
+    "setup": "electron-builder --win nsis"
+  },
+  "build": {
+    "appId": "com.yierbubu.desktop-pet",
+    "productName": "桌面宠物一二布布",
+    "electronVersion": "33.4.11",
+    "electronDist": "D:\\projects\\desktop-pet\\node_modules\\electron\\dist",
+    "directories": {
+      "output": "installer-out"
+    },
+    "files": [
+      "package.json",
+      "src/**/*",
+      "assets/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true,
+      "artifactName": "桌面宠物一二布布-安装程序-${version}.${ext}"
+    }
+  },
+  "devDependencies": {
+    "@electron/asar": "^3.4.1",
+    "electron": "^33.4.11"
+  }
+}

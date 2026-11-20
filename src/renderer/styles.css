@@ -1,0 +1,239 @@
+:root {
+  --pet-size: 140px;
+  --bubble-bg: rgba(255, 255, 255, 0.96);
+  --bubble-text: #4a3a2c;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+}
+
+#stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.pet {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: var(--pet-size);
+  height: var(--pet-size);
+  transform: translateX(-50%);
+  pointer-events: auto;
+  cursor: grab;
+  overflow: visible;
+}
+.pet.dragging { cursor: grabbing; }
+
+.inner { width: 100%; height: 100%; }
+.inner.dir-left { transform: scaleX(-1); }
+
+.body-wrap {
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 92%;
+}
+.body-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  -webkit-user-drag: none;
+}
+
+/* ---------- 状态动画 ---------- */
+/* 常驻动画用 steps() 量化：视觉上仍是缓慢的一呼一吸，但每秒只重绘十来帧，
+   而不是让透明置顶窗口一直按 60fps 合成（实测可省掉约 2/3 的 GPU/CPU 占用）。 */
+.pet[data-state="idle"] .body-wrap { animation: breathe 3.2s steps(16, end) infinite; }
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scaleY(0.965) scaleX(1.025); }
+}
+
+.pet[data-state="walk"] .body-wrap { animation: wiggle 0.45s ease-in-out infinite; }
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
+}
+
+.pet[data-state="poke"] .body-wrap { animation: pop 0.4s ease; }
+@keyframes pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.16); }
+  100% { transform: scale(1); }
+}
+
+.pet[data-state="drag"] .body-wrap { animation: swing 0.6s ease-in-out infinite; }
+@keyframes swing {
+  0%, 100% { transform: rotate(-8deg); }
+  50% { transform: rotate(8deg); }
+}
+
+.pet[data-state="notify"] .body-wrap { animation: jump 0.55s ease infinite; }
+@keyframes jump {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-13px); }
+}
+
+.pet[data-state="sleep"] .body-wrap { animation: snore 4s steps(16, end) infinite; }
+@keyframes snore {
+  0%, 100% { transform: scale(1) rotate(0); }
+  50% { transform: scale(1.02) rotate(2deg); }
+}
+
+.pet[data-state="eat"] .body-wrap { animation: nom 0.35s ease-in-out infinite; }
+@keyframes nom {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(3px) scale(0.98); }
+}
+
+.pet[data-state="celebrate"] .body-wrap { animation: spinPop 0.6s ease-in-out infinite; }
+@keyframes spinPop {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  25% { transform: translateY(-12px) rotate(-7deg); }
+  75% { transform: translateY(-5px) rotate(7deg); }
+}
+
+/* ---------- 气泡 ---------- */
+.bubble {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translate(-50%, 6px);
+  width: max-content;
+  max-width: 232px;
+  background: var(--bubble-bg);
+  color: var(--bubble-text);
+  padding: 7px 11px;
+  border-radius: 13px;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  z-index: 3;
+}
+.bubble.show { opacity: 1; transform: translate(-50%, 0); }
+.bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--bubble-bg);
+  border-bottom: 0;
+}
+
+/* ---------- 时钟 / 番茄钟徽章 ---------- */
+.clock {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  background: rgba(0, 0, 0, 0.42);
+  color: #fff;
+  padding: 2px 7px;
+  border-radius: 8px;
+  font-size: 11px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+}
+.clock.hidden { display: none; }
+/* 专注徽章显示时把时钟挪到下一行，避免两个角标压在一起 */
+.badge:not(.hidden) ~ .clock { top: 26px; }
+
+.badge {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 152px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: rgba(58, 42, 30, 0.62);
+  color: #fff;
+  font-size: 11px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+}
+.badge.hidden { display: none; }
+.badge.break { background: rgba(42, 92, 74, 0.66); }
+.badge .time { font-variant-numeric: tabular-nums; }
+.badge .bar {
+  display: block;
+  width: 40px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+  font-style: normal;
+}
+.badge .bar b {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: #ffd08a;
+  transition: width 0.4s linear;
+}
+
+/* ---------- 睡觉 Zzz ---------- */
+.z {
+  position: absolute;
+  right: 10%;
+  bottom: calc(100% - 16px);
+  font-size: 13px;
+  color: #8b9bb4;
+  opacity: 0;
+  pointer-events: none;
+}
+.pet[data-state="sleep"] .z { animation: floatZ 2.2s steps(16, end) infinite; }
+@keyframes floatZ {
+  0% { opacity: 0; transform: translateY(0); }
+  45% { opacity: 1; transform: translateY(-10px); }
+  100% { opacity: 0; transform: translateY(-22px); }
+}
+
+/* ---------- 爱心 / 零食粒子 ---------- */
+.fx {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.particle {
+  position: absolute;
+  left: 50%;
+  bottom: 36%;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  color: #ff7a9c;
+  animation: floatUp 1.35s ease-out forwards;
+  will-change: transform, opacity;
+}
+.particle.food { color: #c98a4b; width: 20px; height: 20px; margin-left: -10px; }
+@keyframes floatUp {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.6) rotate(0deg); }
+  18% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx, 0px), -105px) scale(1.05) rotate(var(--rot, 0deg)); }
+}

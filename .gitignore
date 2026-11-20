@@ -1,0 +1,5 @@
+node_modules/
+installer-out/
+dist/
+.stage/
+*.log

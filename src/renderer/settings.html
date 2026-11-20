@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; img-src 'self' data: file:; style-src 'self' 'unsafe-inline';" />
+  <title>一二 & 布布 · 设置</title>
+  <link rel="stylesheet" href="settings.css" />
+</head>
+<body>
+  <header>
+    <div class="brand">一二 &amp; 布布<span class="ver" id="version"></span></div>
+    <nav class="tabs">
+      <button type="button" data-tab="look" class="active">形象</button>
+      <button type="button" data-tab="general">常规</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="tab active" id="tab-look">
+      <div class="pet-switch">
+        <button type="button" data-pet="yier" class="active">一二</button>
+        <button type="button" data-pet="bubu">布布</button>
+        <span class="affection" id="affectionText"></span>
+      </div>
+      <p class="hint">为每个动作换 PNG / GIF。未设置的动作用内置形象；换图后立即生效。</p>
+      <div id="assetList"></div>
+      <div class="actions">
+        <button type="button" id="restoreAll" class="danger">全部恢复默认形象</button>
+      </div>
+    </section>
+
+    <section class="tab" id="tab-general">
+      <div class="card">
+        <h3>显示</h3>
+        <div class="field">
+          <div><div class="label">宠物大小</div><div class="sub">拖动滑块实时缩放</div></div>
+          <div class="range-wrap">
+            <input type="range" min="0.7" max="1.5" step="0.05" data-key="scale" data-type="number" />
+            <span id="scaleValue">100%</span>
+          </div>
+        </div>
+        <div class="field">
+          <div class="label">始终置顶</div>
+          <label class="switch"><input type="checkbox" data-key="alwaysOnTop" /><span></span></label>
+        </div>
+        <div class="field">
+          <div><div class="label">锁定位置</div><div class="sub">锁定后无法拖动，右键可解锁</div></div>
+          <label class="switch"><input type="checkbox" data-key="locked" /><span></span></label>
+        </div>
+        <div class="field">
+          <div class="label">显示时间</div>
+          <label class="switch"><input type="checkbox" data-key="showClock" /><span></span></label>
+        </div>
+        <div class="field">
+          <div class="label">提示音</div>
+          <label class="switch"><input type="checkbox" data-key="soundEnabled" /><span></span></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>提醒</h3>
+        <div class="field">
+          <div class="label">喝水提醒</div>
+          <div class="inline">
+            <select data-key="waterReminderMinutes" data-type="number">
+              <option value="30">每 30 分钟</option>
+              <option value="45">每 45 分钟</option>
+              <option value="60">每 60 分钟</option>
+              <option value="90">每 90 分钟</option>
+              <option value="120">每 120 分钟</option>
+            </select>
+            <label class="switch"><input type="checkbox" data-key="waterReminderEnabled" /><span></span></label>
+          </div>
+        </div>
+        <div class="field">
+          <div class="label">久坐提醒</div>
+          <div class="inline">
+            <select data-key="restReminderMinutes" data-type="number">
+              <option value="30">每 30 分钟</option>
+              <option value="45">每 45 分钟</option>
+              <option value="60">每 60 分钟</option>
+              <option value="90">每 90 分钟</option>
+              <option value="120">每 120 分钟</option>
+            </select>
+            <label class="switch"><input type="checkbox" data-key="restReminderEnabled" /><span></span></label>
+          </div>
+        </div>
+        <div class="field">
+          <div class="label">整点报时</div>
+          <label class="switch"><input type="checkbox" data-key="chimeEnabled" /><span></span></label>
+        </div>
+        <div class="field">
+          <div><div class="label">免打扰时段</div><div class="sub">该时段内不弹提醒和报时</div></div>
+          <div class="inline">
+            <select data-key="quietStart" data-type="number"></select>
+            <span class="dash">至</span>
+            <select data-key="quietEnd" data-type="number"></select>
+            <label class="switch"><input type="checkbox" data-key="quietHoursEnabled" /><span></span></label>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="button" id="testWater">测试喝水提醒</button>
+          <button type="button" id="testRest">测试久坐提醒</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>专注番茄钟</h3>
+        <div class="field">
+          <div class="label">专注时长</div>
+          <select data-key="pomodoroWorkMinutes" data-type="number">
+            <option value="15">15 分钟</option>
+            <option value="20">20 分钟</option>
+            <option value="25">25 分钟</option>
+            <option value="30">30 分钟</option>
+            <option value="45">45 分钟</option>
+            <option value="60">60 分钟</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="label">休息时长</div>
+          <select data-key="pomodoroBreakMinutes" data-type="number">
+            <option value="3">3 分钟</option>
+            <option value="5">5 分钟</option>
+            <option value="10">10 分钟</option>
+            <option value="15">15 分钟</option>
+          </select>
+        </div>
+        <div class="pomo">
+          <div class="pomo-info">
+            <div class="pomo-phase" id="pomoPhase">未开始</div>
+            <div class="pomo-bar"><b id="pomoBar"></b></div>
+          </div>
+          <div class="pomo-time" id="pomoTime">--:--</div>
+          <button type="button" id="pomoToggle" class="primary">开始专注</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>启动与位置</h3>
+        <div class="field">
+          <div><div class="label">开机自启</div><div class="sub" id="autoLaunchHint">登录 Windows 后自动运行</div></div>
+          <label class="switch"><input type="checkbox" data-key="autoLaunch" /><span></span></label>
+        </div>
+        <div class="field">
+          <div><div class="label">位置跑偏了？</div><div class="sub">把两只宠物放回屏幕右下角</div></div>
+          <button type="button" id="resetPositions">重置位置</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>好感度</h3>
+        <div class="aff-row">
+          <span class="aff-name">一二</span>
+          <span class="aff-title" id="aff-yier-title">初次见面</span>
+          <div class="aff-bar"><b id="aff-yier-bar"></b></div>
+          <span class="aff-points" id="aff-yier-points">0</span>
+        </div>
+        <div class="aff-row">
+          <span class="aff-name">布布</span>
+          <span class="aff-title" id="aff-bubu-title">初次见面</span>
+          <div class="aff-bar"><b id="aff-bubu-bar"></b></div>
+          <span class="aff-points" id="aff-bubu-points">0</span>
+        </div>
+        <p class="hint">摸摸头 +1，投喂小零食 +5。好感度只存在本地。</p>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+  <script type="module" src="settings.js"></script>
+</body>
+</html>
